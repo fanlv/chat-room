@@ -1,0 +1,11 @@
+[workspace]
+
+members = [
+    "sophia-server",
+    "sophia-core",
+    "sophia-net",
+    "sophia"
+]
+
+#[build]
+#rustflags = ["--cfg", "tokio_unstable"]
