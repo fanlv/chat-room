@@ -1,5 +1,5 @@
 use chrono::prelude::*;
-use log::{error, info};
+use log::error;
 
 use sophia_core::command::Command;
 use sophia_core::errors::Result;
@@ -99,7 +99,7 @@ async fn push_to_user(req: Request, s: &Server, except_for_addr: &str, to_users:
             let res = conn.send(req.clone()).await;
             match res {
                 Err(e) => error!("failed push {} online in chat {}  failed : {} , req {:?}", user_remote, chat_id, e,req),
-                _ => info!("success push to client {}, req = {:?}", user_remote, req )
+                _ => (),//info!("success push to client {}, req = {:?}", user_remote, req )
             }
         });
     }

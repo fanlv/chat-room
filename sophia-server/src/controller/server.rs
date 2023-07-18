@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use futures_util::future::BoxFuture;
-use log::{error, info};
+use log::error;
 
 use sophia_core::command::CommandType;
 use sophia_core::consts::code;
@@ -125,44 +125,8 @@ impl quic::RequestCallback for Server {
 
         let callback = self.get_callback(request.cmd_type)?;
         let resp = callback(self.clone(), request.clone()).await;
-        info!("[{}]: receive request = {:?} , send response = {:?}",
-                    request.base.remote_add, request, resp);
-
-        let mut debug_server = self.clone();
-        debug_server_info(&mut debug_server).await;
         resp
     }
 }
 
 
-async fn debug_server_info(s: &mut Server) {
-    let chat_to_users_list = s.repo.chat.list().await;
-    let mut info_str = String::new();
-
-    info_str.push_str("\nchat list :".as_ref());
-
-    for (chat_id, user_map) in chat_to_users_list {
-        info_str.push_str(format!("\n chat_id = {}", chat_id).as_str());
-        for (remote, user_info) in user_map.iter() {
-            info_str.push_str(format!("\n\t user: {}-{} ", remote, &user_info.name).as_str());
-        }
-        info_str.push_str("\n".as_ref());
-    }
-
-    // info_str.push_str("\nsession list :".as_ref());
-    //
-    //
-    // let list = s.repo.session.list_sessions().await;
-    // for (session, user) in list {
-    //     info_str.push_str(format!("\n\t session = {}, user = {:?} \n", session, user).as_str());
-    // }
-    //
-    // info_str.push_str("\nremote list :".as_ref());
-    //
-    // let list = s.repo.session.list_remote().await;
-    // for (session, user) in list {
-    //     info_str.push_str(format!("\n\t remote = {}, user = {:?} \n", session, user).as_str());
-    // }
-
-    info!("debug info  ={} ",info_str.as_str());
-}
