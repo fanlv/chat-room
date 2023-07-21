@@ -4,7 +4,7 @@ use sophia_core::model::Message as ModelMessage;
 use sophia_core::model::User;
 
 #[derive(Clone, Debug)]
-pub struct ChatMessageList {
+pub struct ChatMessageViewModel {
     pub messages: Vec<Message>,
     pub scroll_pos: usize,
     pub scroll_to_pos: usize,
@@ -35,7 +35,7 @@ impl Message {
     }
 }
 
-impl ChatMessageList {
+impl ChatMessageViewModel {
     pub fn new() -> Self {
         Self {
             messages: Vec::new(),

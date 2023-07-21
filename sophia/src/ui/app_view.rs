@@ -14,7 +14,7 @@ use sophia_core::errors::Result;
 
 use crate::ui::{input_view, log_view, message_view, user_list_view};
 use crate::ui::theme::Theme;
-use crate::view_model::App;
+use crate::view_model::AppViewModel;
 
 pub struct AppView<W: Write> {
     terminal: Terminal<CrosstermBackend<W>>,
@@ -36,7 +36,7 @@ impl<W: Write> AppView<W> {
         })
     }
 
-    pub async fn render(&mut self, state: Arc<RwLock<App>>) -> Result<()> {
+    pub async fn render(&mut self, state: Arc<RwLock<AppViewModel>>) -> Result<()> {
         let (_, message_chunks) = layout(self.rect);
         message_view::adjust_scroll_pos(state.clone(), message_chunks[0]).await;
 
@@ -65,7 +65,7 @@ impl<W: Write> Drop for AppView<W> {
 }
 
 
-fn draw(state: App, frame: &mut Frame<CrosstermBackend<impl Write>>) {
+fn draw(state: AppViewModel, frame: &mut Frame<CrosstermBackend<impl Write>>) {
     let (chunks, message_chunks) = layout(frame.size());
 
     let mut theme = Theme::default();

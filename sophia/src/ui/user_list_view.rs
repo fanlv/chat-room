@@ -13,7 +13,7 @@ use crate::ui::theme::Theme;
 pub fn draw(
     frame: &mut Frame<CrosstermBackend<impl Write>>,
     conf: &config::Config,
-    state: &view_model::UserList,
+    state: &view_model::UserViewModel,
     chunk: Rect,
     theme: &Theme) {
     let mut users: Vec<Spans> = Vec::new();

@@ -16,7 +16,7 @@ use sophia_net::quic;
 
 use crate::config;
 use crate::controller::handler::HandlerImpl;
-use crate::view_model::App;
+use crate::view_model::AppViewModel;
 use crate::view_model::Message;
 
 use super::handler::Handler;
@@ -35,19 +35,19 @@ pub struct Controller {
     callbacks: HashMap<CommandType, Callback>,
     conn: Arc<RwLock<Option<quic::Connection>>>,
     pub session_id: Arc<RwLock<String>>,
-    view_model: Arc<RwLock<App>>,
-    sender: Sender<Arc<RwLock<App>>>,
+    view_model: Arc<RwLock<AppViewModel>>,
+    sender: Sender<Arc<RwLock<AppViewModel>>>,
     pub exit_app: Arc<RwLock<bool>>,
 }
 
 impl Controller {
-    pub fn new(sender: Sender<Arc<RwLock<App>>>, conf: config::Config) -> Self {
+    pub fn new(sender: Sender<Arc<RwLock<AppViewModel>>>, conf: config::Config) -> Self {
         let callbacks = HashMap::new();
         let mut control = Self {
             callbacks,
             conn: Arc::new(RwLock::new(None)),
             session_id: Arc::new(RwLock::new(String::default())),
-            view_model: Arc::new(RwLock::new(App::new(conf))),
+            view_model: Arc::new(RwLock::new(AppViewModel::new(conf))),
             sender,
             exit_app: Arc::new(RwLock::new(false)),
         };
@@ -111,7 +111,7 @@ impl Controller {
         self.refresh().await;
     }
 
-    pub async fn get_view_model(&self) -> App {
+    pub async fn get_view_model(&self) -> AppViewModel {
         let vm = self.view_model.read().await.clone();
         vm
     }

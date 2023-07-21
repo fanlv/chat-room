@@ -1,13 +1,13 @@
 use crossterm::event::KeyCode;
 
 #[derive(Clone, Debug)]
-pub struct Input {
+pub struct InputViewModel {
     pub text: Vec<char>,
     pub cursor: usize,
 }
 
 
-impl Input {
+impl InputViewModel {
     pub fn new() -> Self {
         Self {
             text: Vec::new(),

@@ -1,12 +1,12 @@
-pub use app::App;
-pub use input::Input;
+pub use app::AppViewModel;
+pub use input::InputViewModel;
 pub use messages::Message;
-pub use messages::ChatMessageList;
+pub use messages::ChatMessageViewModel;
 pub use messages::SomeUser;
-pub use user_list::UserList;
+pub use user_list::UserViewModel;
 
 pub use self::log::Log;
-pub use self::log::LogList;
+pub use self::log::LogViewModel;
 
 mod app;
 mod log;

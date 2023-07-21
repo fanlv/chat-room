@@ -15,10 +15,10 @@ use crate::config;
 use crate::controller::Caller;
 use crate::controller::Controller;
 use crate::ui::AppView;
-use crate::view_model::App;
+use crate::view_model::AppViewModel;
 
 pub async fn run(conf: config::Config) -> Result<()> {
-    let (sender, receiver) = mpsc::channel::<Arc<RwLock<App>>>(1);
+    let (sender, receiver) = mpsc::channel::<Arc<RwLock<AppViewModel>>>(1);
 
     tokio::spawn(async move {
         let _ = io_run_loop(conf, sender).await;
@@ -31,13 +31,13 @@ pub async fn run(conf: config::Config) -> Result<()> {
 }
 
 
-pub async fn ui_run_loop(mut views: AppView<Stdout>, mut receiver: Receiver<Arc<RwLock<App>>>) {
+pub async fn ui_run_loop(mut views: AppView<Stdout>, mut receiver: Receiver<Arc<RwLock<AppViewModel>>>) {
     while let Some(state) = receiver.recv().await {
         let _ = views.render(state).await;
     }
 }
 
-pub async fn io_run_loop(conf: config::Config, sender: Sender<Arc<RwLock<App>>>) -> Result<()> {
+pub async fn io_run_loop(conf: config::Config, sender: Sender<Arc<RwLock<AppViewModel>>>) -> Result<()> {
     let mut controller = Controller::new(sender, conf.clone());
 
 

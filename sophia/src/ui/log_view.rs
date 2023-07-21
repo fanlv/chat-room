@@ -13,7 +13,7 @@ use crate::view_model;
 
 pub fn draw(
     frame: &mut Frame<CrosstermBackend<impl Write>>,
-    state: &view_model::LogList,
+    state: &view_model::LogViewModel,
     chunk: Rect,
     theme: &Theme,
 ) {

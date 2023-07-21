@@ -13,7 +13,7 @@ use crate::view_model;
 
 pub fn draw(
     frame: &mut Frame<CrosstermBackend<impl Write>>,
-    state: &view_model::Input,
+    state: &view_model::InputViewModel,
     chunk: Rect,
     theme: &Theme,
 ) {
@@ -62,7 +62,7 @@ pub fn split_each(input: String, width: usize) -> Vec<String> {
     split
 }
 
-pub fn ui_input_cursor(state: &view_model::Input, width: usize) -> (u16, u16) {
+pub fn ui_input_cursor(state: &view_model::InputViewModel, width: usize) -> (u16, u16) {
     let mut position = (0, 0);
 
     for current_char in state.text.iter().take(state.cursor) {

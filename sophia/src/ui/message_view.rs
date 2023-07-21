@@ -13,12 +13,12 @@ use tui::widgets::{Block, Borders, Paragraph, Wrap};
 
 use crate::{config, view_model};
 use crate::ui::theme::Theme;
-use crate::view_model::{App, Message, SomeUser};
+use crate::view_model::{AppViewModel, Message, SomeUser};
 
 pub fn draw(
     frame: &mut Frame<CrosstermBackend<impl Write>>,
     conf: &config::Config,
-    state: &view_model::ChatMessageList,
+    state: &view_model::ChatMessageViewModel,
     chunk: Rect,
     theme: &Theme,
 ) {
@@ -97,7 +97,7 @@ fn get_time_string_with_custom(timestamp: i64, str: &str) -> String {
 }
 
 
-pub async fn adjust_scroll_pos(state: Arc<RwLock<App>>, rect: Rect) {
+pub async fn adjust_scroll_pos(state: Arc<RwLock<AppViewModel>>, rect: Rect) {
     if rect.height == 0 || rect.width == 0 {
         return;
     }
@@ -109,7 +109,7 @@ pub async fn adjust_scroll_pos(state: Arc<RwLock<App>>, rect: Rect) {
     }
 }
 
-pub fn calculate_scroll_pos(state: &mut App, chunk: &Rect) -> usize {
+pub fn calculate_scroll_pos(state: &mut AppViewModel, chunk: &Rect) -> usize {
     if state.msg_vm.messages.is_empty() {
         return 0;
     }
