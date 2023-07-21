@@ -16,8 +16,8 @@ use sophia_net::quic;
 
 use crate::config;
 use crate::controller::handler::HandlerImpl;
-use crate::controller::MessageViewModel;
-use crate::controller::view_model::AppViewModel;
+use crate::view_model::App;
+use crate::view_model::Message;
 
 use super::handler::Handler;
 
@@ -35,18 +35,20 @@ pub struct Controller {
     callbacks: HashMap<CommandType, Callback>,
     conn: Arc<RwLock<Option<quic::Connection>>>,
     pub session_id: Arc<RwLock<String>>,
-    view_model: Arc<RwLock<AppViewModel>>,
+    view_model: Arc<RwLock<App>>,
+    sender: Sender<Arc<RwLock<App>>>,
     pub exit_app: Arc<RwLock<bool>>,
 }
 
 impl Controller {
-    pub fn new(sender: Sender<AppViewModel>, conf: config::Config) -> Self {
+    pub fn new(sender: Sender<Arc<RwLock<App>>>, conf: config::Config) -> Self {
         let callbacks = HashMap::new();
         let mut control = Self {
             callbacks,
             conn: Arc::new(RwLock::new(None)),
             session_id: Arc::new(RwLock::new(String::default())),
-            view_model: Arc::new(RwLock::new(AppViewModel::new(sender, conf))),
+            view_model: Arc::new(RwLock::new(App::new(conf))),
+            sender,
             exit_app: Arc::new(RwLock::new(false)),
         };
         control.register_command();
@@ -64,6 +66,12 @@ impl Controller {
         let conn = curr_conn.clone();
 
         conn
+    }
+
+    pub async fn not_connect(&self) -> bool {
+        let curr_conn = self.conn.read().await;
+
+        curr_conn.is_none()
     }
 
     pub async fn conn(&self) -> quic::Connection {
@@ -97,64 +105,73 @@ impl Controller {
     }
 
     pub async fn log(&self, level: Level, content: String) {
-        self.view_model.write().await.log(level, content).await;
+        {
+            self.view_model.write().await.log_vm.log(level, content);
+        }
+        self.refresh().await;
     }
 
-    pub async fn get_view_model(&self) -> AppViewModel {
+    pub async fn get_view_model(&self) -> App {
         let vm = self.view_model.read().await.clone();
         vm
     }
 
 
     pub async fn update_user_list(&self, user_list: Vec<User>) {
-        let mut state = self.view_model.write().await;
-        state.user_list = user_list;
-        state.refresh().await;
+        {
+            let mut state = self.view_model.write().await;
+            state.user_vm.users = user_list;
+        }
+        self.refresh().await;
     }
 
     pub async fn refresh(&self) {
-        self.view_model.read().await.refresh().await;
+        let _ = self.sender.send(self.view_model.clone()).await;
     }
 
-    pub async fn push_message(&self, msg: MessageViewModel) {
-        let mut state = self.view_model.write().await;
-        state.message_list.push(msg);
-        state.auto_set_scroll_messages().await;
-        state.refresh().await;
+    pub async fn push_message(&self, msg: Message) {
+        {
+            let mut state = self.view_model.write().await;
+            state.msg_vm.messages.push(msg);
+            state.msg_vm.scroll_to_end();
+        }
+        self.refresh().await;
     }
 
-    pub async fn set_message_list(&self, msg_list: Vec<MessageViewModel>) {
-        let mut state = self.view_model.write().await;
-        state.message_list = msg_list;
-        state.auto_set_scroll_messages().await;
-        state.refresh().await;
+    pub async fn set_message_list(&self, msg_list: Vec<Message>) {
+        {
+            let mut state = self.view_model.write().await;
+            state.msg_vm.messages = msg_list;
+            state.msg_vm.scroll_to_end();
+        }
+        self.refresh().await;
     }
 
 
     pub async fn input_write(&self, character: char) {
-        self.view_model.write().await.input_write(character);
+        self.view_model.write().await.input_vm.input_write(character);
     }
 
     pub async fn input_remove(&self) {
-        self.view_model.write().await.input_remove();
+        self.view_model.write().await.input_vm.input_remove();
     }
 
     pub async fn clean_input(&self) {
-        self.view_model.write().await.clean_input();
+        self.view_model.write().await.input_vm.clean_input();
     }
 
 
     pub async fn input_remove_previous(&self) {
-        self.view_model.write().await.input_remove_previous();
+        self.view_model.write().await.input_vm.input_remove_previous();
     }
 
 
     pub async fn input_move_cursor(&self, movement: KeyCode) {
-        self.view_model.write().await.input_move_cursor(movement);
+        self.view_model.write().await.input_vm.input_move_cursor(movement);
     }
 
     pub async fn messages_scroll(&self, movement: KeyCode) {
-        self.view_model.write().await.messages_scroll(movement).await;
+        self.view_model.write().await.msg_vm.messages_scroll(movement);
     }
 }
 

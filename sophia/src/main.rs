@@ -9,10 +9,11 @@ use config::Config;
 use sophia_core::errno_new;
 use sophia_core::errors::Result;
 
-mod ui;
 mod client;
 mod config;
 mod controller;
+mod view_model;
+mod ui;
 
 #[derive(Parser, Debug)] // requires `derive` feature
 #[clap(name = "sophia")]

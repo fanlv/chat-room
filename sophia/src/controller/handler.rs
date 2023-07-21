@@ -5,8 +5,8 @@ use sophia_core::errno;
 use sophia_core::errors::Result;
 use sophia_core::model::{Request, Response, User};
 
-use crate::controller::MessageViewModel;
-use crate::controller::SomeUser;
+use crate::view_model::Message;
+use crate::view_model::SomeUser;
 
 use super::controller::Controller;
 
@@ -27,7 +27,7 @@ pub struct HandlerImpl {}
 impl Handler for HandlerImpl {
     async fn receive_message(ctrl: Controller, request: Request) -> Result<Response> {
         if let Command::NewMessage(message) = request.cmd {
-            let msg = MessageViewModel::from_message(message);
+            let msg = Message::from_message(message);
 
             tokio::spawn(async move {
                 ctrl.push_message(msg).await;
@@ -43,13 +43,12 @@ impl Handler for HandlerImpl {
     async fn receive_message_list(ctrl: Controller, request: Request) -> Result<Response> {
         if let Command::ChatMessageList { message_list } = request.cmd {
             let message_list = message_list.iter().map(|msg| {
-                MessageViewModel::from_message(msg.clone())
+                Message::from_message(msg.clone())
             }).collect();
 
             // ctrl.log(Level::Info, format!("receive  message list: {:?}", message_list)).await;
-            tokio::spawn(async move {
-                ctrl.set_message_list(message_list).await;
-            });
+            ctrl.set_message_list(message_list).await;
+
 
             let response = Response::success("ok".to_string());
             return Ok(response);
@@ -78,9 +77,7 @@ impl Handler for HandlerImpl {
 
     async fn chat_user_list_to_user(ctrl: Controller, request: Request) -> Result<Response> {
         if let Command::ChatUserList { user_list } = request.cmd {
-            tokio::spawn(async move {
-                ctrl.update_user_list(user_list).await;
-            });
+            ctrl.update_user_list(user_list).await;
 
             let response = Response::success("ok".to_string());
             return Ok(response);
@@ -104,7 +101,7 @@ async fn user_connection_change(ctrl: Controller, user: User, time: i64, online:
     }
 
     let content = format!("{} {} is {} ", user.address, user.user_name, action);
-    let msg = MessageViewModel::new(time, content, SomeUser::System);
+    let msg = Message::new(time, content, SomeUser::System);
 
     tokio::spawn(async move {
         ctrl.push_message(msg).await;

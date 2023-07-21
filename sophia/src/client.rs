@@ -1,9 +1,10 @@
 use std::io::Stdout;
+use std::sync::Arc;
 
 use crossterm::event;
 use crossterm::event::KeyCode;
 use log::Level;
-use tokio::sync::mpsc;
+use tokio::sync::{mpsc, RwLock};
 use tokio::sync::mpsc::{Receiver, Sender};
 
 use sophia_core::command;
@@ -11,32 +12,33 @@ use sophia_core::errors::Result;
 use sophia_net::quic;
 
 use crate::config;
-use crate::controller::{AppViewModel, Caller};
+use crate::controller::Caller;
 use crate::controller::Controller;
-use crate::ui::UIViews;
+use crate::ui::AppView;
+use crate::view_model::App;
 
 pub async fn run(conf: config::Config) -> Result<()> {
-    let (sender, receiver) = mpsc::channel::<AppViewModel>(1);
+    let (sender, receiver) = mpsc::channel::<Arc<RwLock<App>>>(1);
 
     tokio::spawn(async move {
         let _ = io_run_loop(conf, sender).await;
     });
 
-    let views = UIViews::new(std::io::stdout())?;
+    let views = AppView::new(std::io::stdout())?;
     ui_run_loop(views, receiver).await;
 
     Ok(())
 }
 
 
-pub async fn ui_run_loop(mut views: UIViews<Stdout>, mut receiver: Receiver<AppViewModel>) {
+pub async fn ui_run_loop(mut views: AppView<Stdout>, mut receiver: Receiver<Arc<RwLock<App>>>) {
     while let Some(state) = receiver.recv().await {
         let _ = views.render(state).await;
     }
 }
 
-pub async fn io_run_loop(conf: config::Config, sender: Sender<AppViewModel>) -> Result<()> {
-    let mut controller = Controller::new(sender.clone(), conf.clone());
+pub async fn io_run_loop(conf: config::Config, sender: Sender<Arc<RwLock<App>>>) -> Result<()> {
+    let mut controller = Controller::new(sender, conf.clone());
 
 
     let mut quic_cli = quic::Client::new();
@@ -179,16 +181,16 @@ const MAX_MSG_LEN: usize = 1024;
 
 async fn send_message(ctrl: &Controller) {
     let vm = ctrl.get_view_model().await;
-    if vm.input.len() == 0 {
+    if vm.input_vm.text.len() == 0 {
         return;
     }
 
-    if vm.input.len() > MAX_MSG_LEN {
+    if vm.input_vm.text.len() > MAX_MSG_LEN {
         ctrl.log(Level::Warn, format!("msg len must lest lan {}", MAX_MSG_LEN)).await;
         return;
     }
 
-    let msg: String = vm.input.iter().collect();
+    let msg: String = vm.input_vm.text.iter().collect();
     let chat_id = vm.conf.chat_id;
     let res = ctrl.send_msg(&msg, chat_id).await;
     if let Err(e) = res {

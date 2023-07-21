@@ -17,6 +17,10 @@ pub trait Caller {
 #[async_trait]
 impl Caller for Controller {
     async fn login(&self, cmd: command::Login) -> Result<String> {
+        if self.not_connect().await {
+            return errno!("connect failed")
+        }
+
         let req = Request::new(Command::Login(cmd));
 
         let resp = self.conn().await.send(req).await?;
@@ -27,6 +31,10 @@ impl Caller for Controller {
     }
 
     async fn send_msg(&self, msg: &str, chat_id: i64) -> Result<String> {
+        if self.not_connect().await {
+            return errno!("connect failed")
+        }
+
         let mut req = Request::new(Command::SendTextMessage { msg: msg.to_string(), chat_id });
         req.base.session_id = self.session_id.read().await.to_string();
 
