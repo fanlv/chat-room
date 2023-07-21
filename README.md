@@ -23,9 +23,8 @@ Run Client :
 
 Create your own custom certificate：
 
-	openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -subj "/CN=localhost" -keyout cert.key -out cert.crt -addext "subjectAltName = DNS:localhost, IP:127.0.0.1, IP:0.0.0.0"
-	
-	openssl x509 -outform der -in cert.pem -out cert.der
+	openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -subj "/CN=localhost" -keyout cert.key -out cert.crt -addext "subjectAltName = DNS:localhost, DNS:fanlv.fun, IP:127.0.0.1"	
+	openssl x509 -outform der -in cert.crt -out cert.der
 
 
 
