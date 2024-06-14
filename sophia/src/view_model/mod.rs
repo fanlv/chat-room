@@ -5,7 +5,6 @@ pub use messages::ChatMessageViewModel;
 pub use messages::SomeUser;
 pub use user_list::UserViewModel;
 
-pub use self::log::Log;
 pub use self::log::LogViewModel;
 
 mod app;

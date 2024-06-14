@@ -16,9 +16,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Run sophia
-      run: cargo run --bin sophia
-    - name: Run sophia-server
-      run: cargo run --bin sophia-server
+    - name: Build
+      run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
