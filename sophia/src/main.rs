@@ -138,7 +138,7 @@ async fn get_env_args() -> Result<Args> {
 async fn lookup_ip(domain: &str) -> Result<IpAddr> {
     let resolver = TokioAsyncResolver::tokio(
         ResolverConfig::default(),
-        ResolverOpts::default(), )
+        ResolverOpts::default())
         .map_err(|e| errno_new!("failed to new resolver, err =  {}", e))?;
 
 
